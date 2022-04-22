@@ -1,5 +1,7 @@
 package analysis;
 
+import analysis.utils.CheckPointAnalysis;
+import analysis.utils.CheckPointDetail;
 import analysis.utils.Helper;
 import org.apache.commons.cli.*;
 import soot.*;
@@ -8,6 +10,8 @@ import soot.toolkits.graph.BlockGraph;
 import soot.toolkits.graph.CompleteBlockGraph;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AnalysisTester {
@@ -42,7 +46,6 @@ public class AnalysisTester {
             classPrefix = "cases";
         }
 
-        System.out.println(jarPath);
         Helper.initEnv(jarPath);
 
         String className = classPrefix + ".Case1";
@@ -55,19 +58,14 @@ public class AnalysisTester {
         Body b = method.retrieveActiveBody();
         ExceptionalUnitGraph graph = new ExceptionalUnitGraph(b);
 
-
+        Map<Integer, List<CheckPointDetail>>  checkPointDetailMap = (new CheckPointAnalysis(graph)).ret;
 
         LiveVarAnalysis liveVarAnalysis = new LiveVarAnalysis(graph);
 
-        for(Unit u : graph) {
-            Set<Value> bv = liveVarAnalysis.getFlowBefore(u);
-            Set<Value>av = liveVarAnalysis.getFlowAfter(u);
-            System.out.println("---------------------------");
-            System.out.println(u);
-            System.out.println(av);
+        for(CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS)) {
+            Set<Value> bv = liveVarAnalysis.getFlowAfter(cd.getUnit());
+            System.out.println(cd.getId());
             System.out.println(bv);
-            System.out.println("---------------------------");
-
         }
 
     }
