@@ -1,6 +1,14 @@
 package analysis;
 
+import analysis.utils.Helper;
 import org.apache.commons.cli.*;
+import soot.*;
+import soot.toolkits.graph.Block;
+import soot.toolkits.graph.BlockGraph;
+import soot.toolkits.graph.CompleteBlockGraph;
+import soot.toolkits.graph.ExceptionalUnitGraph;
+
+import java.util.Set;
 
 public class AnalysisTester {
     public static void main(String[] args) {
@@ -35,8 +43,32 @@ public class AnalysisTester {
         }
 
         System.out.println(jarPath);
-        System.out.println(assertionPath);
-        System.out.println(classPrefix);
+        Helper.initEnv(jarPath);
+
+        String className = classPrefix + ".Case1";
+
+        SootClass sootClass = Scene.v().loadClassAndSupport(className);
+        sootClass.setApplicationClass();
+        Scene.v().loadNecessaryClasses();
+        SootMethod method = sootClass.getMethodByName("main");
+
+        Body b = method.retrieveActiveBody();
+        ExceptionalUnitGraph graph = new ExceptionalUnitGraph(b);
+
+
+
+        LiveVarAnalysis liveVarAnalysis = new LiveVarAnalysis(graph);
+
+        for(Unit u : graph) {
+            Set<Value> bv = liveVarAnalysis.getFlowBefore(u);
+            Set<Value>av = liveVarAnalysis.getFlowAfter(u);
+            System.out.println("---------------------------");
+            System.out.println(u);
+            System.out.println(av);
+            System.out.println(bv);
+            System.out.println("---------------------------");
+
+        }
 
     }
 }
