@@ -3,19 +3,20 @@ package analysis;
 import analysis.utils.CheckPointAnalysis;
 import analysis.utils.CheckPointDetail;
 import analysis.utils.Helper;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.cli.*;
 import soot.*;
-import soot.toolkits.graph.Block;
-import soot.toolkits.graph.BlockGraph;
-import soot.toolkits.graph.CompleteBlockGraph;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class AnalysisTester {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, CsvValidationException {
         Options options = new Options();
         Option jar = new Option("j", "jar", true, "jar path");
         jar.setRequired(true);
@@ -48,7 +49,8 @@ public class AnalysisTester {
 
         Helper.initEnv(jarPath);
 
-        String className = classPrefix + ".Case1";
+        String caseName = "Case1";
+        String className = classPrefix + "." + caseName;
 
         SootClass sootClass = Scene.v().loadClassAndSupport(className);
         sootClass.setApplicationClass();
@@ -62,11 +64,38 @@ public class AnalysisTester {
 
         LiveVarAnalysis liveVarAnalysis = new LiveVarAnalysis(graph);
 
+        Map<String, List<String>> result = new HashMap<>();
         for(CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS)) {
             Set<Value> bv = liveVarAnalysis.getFlowAfter(cd.getUnit());
-            System.out.println(cd.getId());
-            System.out.println(bv);
+            List<String> cl = result.computeIfAbsent(cd.getId(), k -> new ArrayList<>());
+            for(Value v:bv)
+                cl.add(v.toString());
         }
+        for(String k : result.keySet()) {
+            Collections.sort(result.get(k));
+        }
+
+        // read assert
+        // read normal
+        String normalAssertPath = Paths.get( assertionPath, "normal", "liveness", caseName.toLowerCase() +
+                ".csv").toString();
+        CSVReader csvReader = new CSVReader(new FileReader(normalAssertPath));
+        String[] nextRecord;
+        Map<String, List<String>> asserResult = new HashMap<>();
+
+        while ((nextRecord = csvReader.readNext()) != null) {
+            List<String> cl = asserResult.computeIfAbsent(nextRecord[0].trim(), k -> new ArrayList<>());
+            cl.add(nextRecord[1].trim());
+        }
+        for(String k : asserResult.keySet()) {
+            Collections.sort(asserResult.get(k));
+        }
+        System.out.println(result);
+        System.out.println(asserResult);
+        System.out.println( asserResult.equals(result));
+
+
+
 
     }
 }
