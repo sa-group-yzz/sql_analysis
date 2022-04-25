@@ -3,13 +3,12 @@ package analysis;
 import analysis.utils.CheckPointAnalysis;
 import analysis.utils.CheckPointDetail;
 import analysis.utils.Helper;
+import com.google.common.reflect.ClassPath;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.cli.*;
 import soot.*;
 import soot.toolkits.graph.ExceptionalUnitGraph;
-
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -43,41 +42,68 @@ public class AnalysisTester {
         String jarPath = cmd.getOptionValue("jar");
         String assertionPath = cmd.getOptionValue("assertion");
         String classPrefix = cmd.getOptionValue("prefix");
-        if(classPrefix == null || classPrefix.equals("")) {
+        if (classPrefix == null || classPrefix.equals("")) {
             classPrefix = "cases";
         }
 
-        Helper.initEnv(jarPath);
+        List<String> testCases = Helper.getTestCases(jarPath);
+        for (String caseName : testCases) {
+            System.out.printf("handling %s ...\n", caseName);
+            SootMethod method = Helper.getTestCaseSootMethod(jarPath, classPrefix, caseName);
+            Body b = method.retrieveActiveBody();
+            ExceptionalUnitGraph graph = new ExceptionalUnitGraph(b);
 
-        String caseName = "Case1";
-        String className = classPrefix + "." + caseName;
+            String runType = "normal";
+            if(!runAnalysis(assertionPath, caseName, graph, runType)) {
+                printErrorMsg(runType);
+                System.exit(1);
+            }
+            System.out.println("pass");
+        }
+    }
 
-        SootClass sootClass = Scene.v().loadClassAndSupport(className);
-        sootClass.setApplicationClass();
-        Scene.v().loadNecessaryClasses();
-        SootMethod method = sootClass.getMethodByName("main");
+    private static void printErrorMsg(String runType) {
+        System.out.printf("%s failed\n", runType);
+        System.out.println("expected:");
+        System.out.println(expectedResult);
+        System.out.println("actual:");
+        System.out.println(realResult);
+    }
 
-        Body b = method.retrieveActiveBody();
-        ExceptionalUnitGraph graph = new ExceptionalUnitGraph(b);
 
-        Map<Integer, List<CheckPointDetail>>  checkPointDetailMap = (new CheckPointAnalysis(graph)).ret;
+    private static boolean runAnalysis(String assertionPath, String caseName, ExceptionalUnitGraph graph, String runType) throws IOException, CsvValidationException {
+        Map<Integer, List<CheckPointDetail>> checkPointDetailMap = (new CheckPointAnalysis(graph)).ret;
 
         LiveVarAnalysis liveVarAnalysis = new LiveVarAnalysis(graph);
-
-        Map<String, List<String>> result = new HashMap<>();
-        for(CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS)) {
-            Set<Value> bv = liveVarAnalysis.getFlowAfter(cd.getUnit());
-            List<String> cl = result.computeIfAbsent(cd.getId(), k -> new ArrayList<>());
-            for(Value v:bv)
-                cl.add(v.toString());
+        currentCase = caseName;
+        if(checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS) != null) {
+            Map<String, List<String>> result = new HashMap<>();
+            for (CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS)) {
+                Set<Value> bv = liveVarAnalysis.getFlowAfter(cd.getUnit());
+                List<String> cl = result.computeIfAbsent(cd.getId(), k -> new ArrayList<>());
+                for (Value v : bv)
+                    cl.add(v.toString());
+            }
+            for (String k : result.keySet()) {
+                Collections.sort(result.get(k));
+            }
+            String analysisType = "liveness";
+            currentAnalysis = analysisType;
+            if(!runAssert(assertionPath, caseName, runType, result, analysisType)) {
+                return false;
+            }
         }
-        for(String k : result.keySet()) {
-            Collections.sort(result.get(k));
-        }
+        return true;
+    }
 
+    static Map<String, List<String>> realResult = null;
+    static Map<String, List<String>> expectedResult = null;
+    static String currentAnalysis = "";
+    static String currentCase = "";
+
+    private static boolean runAssert(String assertionPath, String caseName, String runType, Map<String, List<String>> result, String analysisType) throws IOException, CsvValidationException {
         // read assert
-        // read normal
-        String normalAssertPath = Paths.get( assertionPath, "normal", "liveness", caseName.toLowerCase() +
+        String normalAssertPath = Paths.get(assertionPath, runType, analysisType, caseName.toLowerCase() +
                 ".csv").toString();
         CSVReader csvReader = new CSVReader(new FileReader(normalAssertPath));
         String[] nextRecord;
@@ -87,15 +113,11 @@ public class AnalysisTester {
             List<String> cl = asserResult.computeIfAbsent(nextRecord[0].trim(), k -> new ArrayList<>());
             cl.add(nextRecord[1].trim());
         }
-        for(String k : asserResult.keySet()) {
+        for (String k : asserResult.keySet()) {
             Collections.sort(asserResult.get(k));
         }
-        System.out.println(result);
-        System.out.println(asserResult);
-        System.out.println( asserResult.equals(result));
-
-
-
-
+        expectedResult = asserResult;
+        realResult = result;
+        return asserResult.equals(result);
     }
 }
