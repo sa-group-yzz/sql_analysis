@@ -47,6 +47,7 @@ public class Helper {
 
     public static SootMethod getTestCaseSootMethod(String jarPath, String classPrefix, String caseName) {
         G.reset();
+        Options.v().set_keep_line_number(true);
         Helper.initEnv(jarPath);
         String className = classPrefix + "." + caseName;
         SootClass sootClass = Scene.v().loadClassAndSupport(className);

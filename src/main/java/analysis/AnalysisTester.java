@@ -74,26 +74,46 @@ public class AnalysisTester {
     private static boolean runAnalysis(String assertionPath, String caseName, ExceptionalUnitGraph graph, String runType) throws IOException, CsvValidationException {
         Map<Integer, List<CheckPointDetail>> checkPointDetailMap = (new CheckPointAnalysis(graph)).ret;
 
-        LiveVarAnalysis liveVarAnalysis = new LiveVarAnalysis(graph);
         currentCase = caseName;
         if(checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS) != null) {
-            Map<String, List<String>> result = new HashMap<>();
-            for (CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS)) {
-                Set<Value> bv = liveVarAnalysis.getFlowAfter(cd.getUnit());
-                List<String> cl = result.computeIfAbsent(cd.getId(), k -> new ArrayList<>());
-                for (Value v : bv)
-                    cl.add(v.toString());
-            }
-            for (String k : result.keySet()) {
-                Collections.sort(result.get(k));
-            }
-            String analysisType = "liveness";
-            currentAnalysis = analysisType;
-            if(!runAssert(assertionPath, caseName, runType, result, analysisType)) {
-                return false;
-            }
+            System.out.println("run liveness analysis");
+            LiveVarAnalysis liveVarAnalysis = new LiveVarAnalysis(graph);
+            if (!runLiveness(assertionPath, caseName, runType, checkPointDetailMap, liveVarAnalysis)) return false;
+        }
+        if(checkPointDetailMap.get(CheckPointDetail.DEFINITION_ANALYSIS) != null) {
+            System.out.println("run reaching definition analysis");
+            DefinitionAnalysis definitionAnalysis = new DefinitionAnalysis(graph);
+            if(!runDefinition(assertionPath, caseName, runType, checkPointDetailMap, definitionAnalysis)) return false;
         }
         return true;
+    }
+    private static boolean runDefinition(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, DefinitionAnalysis defVarAnalysis) throws IOException, CsvValidationException {
+        String analysisType = "definition";
+        currentAnalysis = analysisType;
+        Map<String, List<String>> result = new HashMap<>();
+        for (CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.DEFINITION_ANALYSIS)) {
+            BitSet bv = defVarAnalysis.getFlowAfter(cd.getUnit());
+            List<String> reachValueBoxes = new ArrayList<>();
+            for(ValueBox vb : defVarAnalysis.getSameValueBoxes().get(cd.getValue())) {
+                if(bv.get(defVarAnalysis.getvIndexMap().get(vb))) {
+                    reachValueBoxes.add(String.format("%d", defVarAnalysis.getVbLineMap().get(vb)));
+                }
+            }
+            result.put(cd.getId(), reachValueBoxes);
+        }
+        return runAssert(assertionPath, caseName, runType, result, analysisType);
+    }
+    private static boolean runLiveness(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, LiveVarAnalysis liveVarAnalysis) throws IOException, CsvValidationException {
+        Map<String, List<String>> result = new HashMap<>();
+        for (CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS)) {
+            Set<Value> bv = liveVarAnalysis.getFlowAfter(cd.getUnit());
+            List<String> cl = result.computeIfAbsent(cd.getId(), k -> new ArrayList<>());
+            for (Value v : bv)
+                cl.add(v.toString());
+        }
+        String analysisType = "liveness";
+        currentAnalysis = analysisType;
+        return runAssert(assertionPath, caseName, runType, result, analysisType);
     }
 
     static Map<String, List<String>> realResult = null;
@@ -103,6 +123,9 @@ public class AnalysisTester {
 
     private static boolean runAssert(String assertionPath, String caseName, String runType, Map<String, List<String>> result, String analysisType) throws IOException, CsvValidationException {
         // read assert
+        for (String k : result.keySet()) {
+            Collections.sort(result.get(k));
+        }
         String normalAssertPath = Paths.get(assertionPath, runType, analysisType, caseName.toLowerCase() +
                 ".csv").toString();
         CSVReader csvReader = new CSVReader(new FileReader(normalAssertPath));
