@@ -1,6 +1,5 @@
 package analysis;
 
-import com.sun.applet2.AppletParameters;
 import soot.Unit;
 import soot.Value;
 import soot.ValueBox;

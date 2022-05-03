@@ -3,7 +3,6 @@ package analysis;
 import analysis.utils.CheckPointAnalysis;
 import analysis.utils.CheckPointDetail;
 import analysis.utils.Helper;
-import com.google.common.reflect.ClassPath;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.cli.*;
@@ -85,8 +84,33 @@ public class AnalysisTester {
             DefinitionAnalysis definitionAnalysis = new DefinitionAnalysis(graph);
             if(!runDefinition(assertionPath, caseName, runType, checkPointDetailMap, definitionAnalysis)) return false;
         }
+        if(checkPointDetailMap.get(CheckPointDetail.CONSTANT_ANALYSIS) != null) {
+            System.out.println("run constant propagation analysis");
+            ConstantPropagation constantPropagation = new ConstantPropagation(graph);
+            if(!runConst(assertionPath, caseName, runType, checkPointDetailMap, constantPropagation)) return false;
+        }
         return true;
     }
+
+    private static boolean runConst(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, ConstantPropagation constantPropagation) throws CsvValidationException, IOException {
+        String analysisType = "constant";
+        currentAnalysis = analysisType;
+        Map<String, List<String>> result = new HashMap<>();
+        for (CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.DEFINITION_ANALYSIS)) {
+            CPFact bv = constantPropagation.getFlowBefore(cd.getUnit());
+            Value checkValue = cd.getValue();
+            List<String> constValueBoxes = new ArrayList<>();
+            bv.entries().forEach(entry->{
+                if(entry.getKey() == checkValue) {
+                    constValueBoxes.add(String.format("%s", entry.getValue().toString()));
+
+                }
+            });
+            result.put(cd.getId(), constValueBoxes);
+        }
+        return runAssert(assertionPath, caseName, runType, result, analysisType);
+    }
+
     private static boolean runDefinition(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, DefinitionAnalysis defVarAnalysis) throws IOException, CsvValidationException {
         String analysisType = "definition";
         currentAnalysis = analysisType;
