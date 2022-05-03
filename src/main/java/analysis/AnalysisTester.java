@@ -7,7 +7,11 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.cli.*;
 import soot.*;
+import soot.jimple.BinopExpr;
+import soot.jimple.toolkits.typing.fast.QueuedSet;
 import soot.toolkits.graph.ExceptionalUnitGraph;
+import soot.toolkits.scalar.ArraySparseSet;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -25,6 +29,9 @@ public class AnalysisTester {
         Option assertion = new Option("a", "assertion", true, "assertion path");
         assertion.setRequired(true);
         options.addOption(assertion);
+        Option caseSpecific = new Option("c", "case", true, "specific case");
+        caseSpecific.setRequired(false);
+        options.addOption(caseSpecific);
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;
@@ -41,12 +48,16 @@ public class AnalysisTester {
         String jarPath = cmd.getOptionValue("jar");
         String assertionPath = cmd.getOptionValue("assertion");
         String classPrefix = cmd.getOptionValue("prefix");
+        String specificCase = cmd.getOptionValue("case");
         if (classPrefix == null || classPrefix.equals("")) {
             classPrefix = "cases";
         }
 
         List<String> testCases = Helper.getTestCases(jarPath);
         for (String caseName : testCases) {
+            if(specificCase != null && !Objects.equals(specificCase, "") && !specificCase.equals(caseName)) {
+                continue;
+            }
             System.out.printf("handling %s ...\n", caseName);
             SootMethod method = Helper.getTestCaseSootMethod(jarPath, classPrefix, caseName);
             Body b = method.retrieveActiveBody();
@@ -89,7 +100,60 @@ public class AnalysisTester {
             ConstantPropagation constantPropagation = new ConstantPropagation(graph);
             if(!runConst(assertionPath, caseName, runType, checkPointDetailMap, constantPropagation)) return false;
         }
+        if(checkPointDetailMap.get(CheckPointDetail.EXPRESSION_ANALYSIS) != null) {
+            System.out.println("run available expression analysis");
+            AvailableExpression availableExpression = new AvailableExpression(graph);
+            if(!runAvail(graph, assertionPath, caseName, runType, checkPointDetailMap, availableExpression)) return false;
+        }
         return true;
+    }
+
+    private static boolean runAvail(ExceptionalUnitGraph graph, String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, AvailableExpression availableExpression) throws CsvValidationException, IOException {
+        String analysisType = "expression";
+        currentAnalysis = analysisType;
+        Map<String, List<String>> result = new HashMap<>();
+        for (CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.EXPRESSION_ANALYSIS)) {
+            BinopExpr checkValue = null;
+            Unit checkUnit = null;
+            Value tmpValue = cd.getValue();
+            QueuedSet<Unit> us = new QueuedSet<>();
+            us.addLast(graph.getPredsOf(cd.getUnit()));
+            while (checkValue == null) {
+                Unit u = us.removeFirst();
+                boolean findDef = false;
+                for(ValueBox vb : u.getDefBoxes()) {
+                    Value tv = vb.getValue();
+                    if(tv.equivTo(tmpValue)) {
+                        findDef = true;
+                        break;
+                    }
+                }
+                if(!findDef) {
+                    us.addLast(graph.getPredsOf(u));
+                    continue;
+                }
+                for(ValueBox vb : u.getUseBoxes()) {
+                    Value tv = vb.getValue();
+                    if(tv instanceof BinopExpr) {
+                        checkValue = (BinopExpr) tv;
+                        checkUnit = u;
+                        break;
+                    }
+                }
+            }
+            ArraySparseSet<MyBinop> bv = availableExpression.getFlowBefore(checkUnit);
+            List<String> expValueBoxes = new ArrayList<>();
+            for(MyBinop entry : bv) {
+                if(entry.equals(MyBinop.getInstance(checkValue))) {
+                    expValueBoxes.add(String.format("%s", 1));
+                    break;
+                }
+            }
+            if(expValueBoxes.size() == 0)
+                expValueBoxes.add(String.format("%s", 0));
+            result.put(cd.getId(), expValueBoxes);
+        }
+        return runAssert(assertionPath, caseName, runType, result, analysisType);
     }
 
     private static boolean runConst(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, ConstantPropagation constantPropagation) throws CsvValidationException, IOException {
