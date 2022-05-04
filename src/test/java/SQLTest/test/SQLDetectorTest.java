@@ -4,10 +4,10 @@ import com.alibaba.druid.stat.TableStat;
 import org.junit.Test;
 import soot.jimple.IfStmt;
 import top.viewv.SQLAnalysis;
+import top.viewv.SQLDetector;
 import top.viewv.abstraction.Silica;
 import top.viewv.abstraction.Use;
 import top.viewv.function.Analyzer;
-import top.viewv.function.SilicaFinder;
 
 import java.util.*;
 
@@ -16,8 +16,8 @@ import static org.junit.Assert.assertEquals;
 public class SQLDetectorTest extends BaseTest {
     @Test
     public void test() {
-        Set<String> classFilter = new HashSet<>(Arrays.asList("SQLTest.testcase.Case1"));
-        Set<Silica> relevantSilicas = SilicaFinder.find("^(select (?!(count|avg|sum|min|max)(\\(| \\())(?!.* limit 0)).*", classFilter);
+        SQLDetector detector = new SQLDetector();
+        Set<Silica> relevantSilicas = detector.detect(new HashSet<>(Arrays.asList("SQLTest.testcase.Case1")));
         for (Silica silica : relevantSilicas) {
             Set<String> queries = silica.getStringQueries();
             HashMap<String, TableStat.Condition> conditionHashMap = new HashMap<>();
