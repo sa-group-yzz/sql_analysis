@@ -35,6 +35,7 @@ public class SQLDetectorTest extends BaseTest {
                         List<String> columes = new ArrayList<>(use.getSelectedColumn());
                         assertEquals(1, columes.size());
                         assertEquals("price", columes.get(0));
+                        break;
                     }
                 }
             }
