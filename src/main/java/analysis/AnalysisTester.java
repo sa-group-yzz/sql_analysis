@@ -64,13 +64,19 @@ public class AnalysisTester {
             ExceptionalUnitGraph graph = new ExceptionalUnitGraph(b);
 
             String runType = "normal";
+            classCaseNumber = 0;
             if(!runAnalysis(assertionPath, caseName, graph, runType)) {
                 printErrorMsg(runType);
                 System.exit(1);
             }
             System.out.println("pass");
+
+            caseNumber += classCaseNumber;
         }
+        System.out.printf("case number:%d\n", caseNumber);
     }
+    static int caseNumber = 0;
+    static int classCaseNumber = 0;
 
     private static void printErrorMsg(String runType) {
         System.out.printf("%s failed\n", runType);
@@ -87,20 +93,24 @@ public class AnalysisTester {
         currentCase = caseName;
         if(checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS) != null) {
             System.out.println("run liveness analysis");
+            classCaseNumber++;
             LiveVarAnalysis liveVarAnalysis = new LiveVarAnalysis(graph);
             if (!runLiveness(assertionPath, caseName, runType, checkPointDetailMap, liveVarAnalysis)) return false;
         }
         if(checkPointDetailMap.get(CheckPointDetail.DEFINITION_ANALYSIS) != null) {
+            classCaseNumber++;
             System.out.println("run reaching definition analysis");
             DefinitionAnalysis definitionAnalysis = new DefinitionAnalysis(graph);
             if(!runDefinition(assertionPath, caseName, runType, checkPointDetailMap, definitionAnalysis)) return false;
         }
         if(checkPointDetailMap.get(CheckPointDetail.CONSTANT_ANALYSIS) != null) {
+            classCaseNumber++;
             System.out.println("run constant propagation analysis");
             ConstantPropagation constantPropagation = new ConstantPropagation(graph);
             if(!runConst(assertionPath, caseName, runType, checkPointDetailMap, constantPropagation)) return false;
         }
         if(checkPointDetailMap.get(CheckPointDetail.EXPRESSION_ANALYSIS) != null) {
+            classCaseNumber++;
             System.out.println("run available expression analysis");
             AvailableExpression availableExpression = new AvailableExpression(graph);
             if(!runAvail(graph, assertionPath, caseName, runType, checkPointDetailMap, availableExpression)) return false;
