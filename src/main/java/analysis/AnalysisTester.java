@@ -88,7 +88,7 @@ public class AnalysisTester {
 
 
     private static boolean runAnalysis(String assertionPath, String caseName, ExceptionalUnitGraph graph, String runType) throws IOException, CsvValidationException {
-        Map<Integer, List<CheckPointDetail>> checkPointDetailMap = (new CheckPointAnalysis(graph)).ret;
+        Map<Integer, Set<CheckPointDetail>> checkPointDetailMap = (new CheckPointAnalysis(graph)).ret;
 
         currentCase = caseName;
         if(checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS) != null) {
@@ -118,7 +118,7 @@ public class AnalysisTester {
         return true;
     }
 
-    private static boolean runAvail(ExceptionalUnitGraph graph, String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, AvailableExpression availableExpression) throws CsvValidationException, IOException {
+    private static boolean runAvail(ExceptionalUnitGraph graph, String assertionPath, String caseName, String runType, Map<Integer, Set<CheckPointDetail>> checkPointDetailMap, AvailableExpression availableExpression) throws CsvValidationException, IOException {
         String analysisType = "expression";
         currentAnalysis = analysisType;
         Map<String, List<String>> result = new HashMap<>();
@@ -166,7 +166,7 @@ public class AnalysisTester {
         return runAssert(assertionPath, caseName, runType, result, analysisType);
     }
 
-    private static boolean runConst(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, ConstantPropagation constantPropagation) throws CsvValidationException, IOException {
+    private static boolean runConst(String assertionPath, String caseName, String runType, Map<Integer, Set<CheckPointDetail>> checkPointDetailMap, ConstantPropagation constantPropagation) throws CsvValidationException, IOException {
         String analysisType = "constant";
         currentAnalysis = analysisType;
         Map<String, List<String>> result = new HashMap<>();
@@ -185,7 +185,7 @@ public class AnalysisTester {
         return runAssert(assertionPath, caseName, runType, result, analysisType);
     }
 
-    private static boolean runDefinition(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, DefinitionAnalysis defVarAnalysis) throws IOException, CsvValidationException {
+    private static boolean runDefinition(String assertionPath, String caseName, String runType, Map<Integer, Set<CheckPointDetail>> checkPointDetailMap, DefinitionAnalysis defVarAnalysis) throws IOException, CsvValidationException {
         String analysisType = "definition";
         currentAnalysis = analysisType;
         Map<String, List<String>> result = new HashMap<>();
@@ -201,7 +201,7 @@ public class AnalysisTester {
         }
         return runAssert(assertionPath, caseName, runType, result, analysisType);
     }
-    private static boolean runLiveness(String assertionPath, String caseName, String runType, Map<Integer, List<CheckPointDetail>> checkPointDetailMap, LiveVarAnalysis liveVarAnalysis) throws IOException, CsvValidationException {
+    private static boolean runLiveness(String assertionPath, String caseName, String runType, Map<Integer, Set<CheckPointDetail>> checkPointDetailMap, LiveVarAnalysis liveVarAnalysis) throws IOException, CsvValidationException {
         Map<String, List<String>> result = new HashMap<>();
         for (CheckPointDetail cd : checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS)) {
             Set<Value> bv = liveVarAnalysis.getFlowAfter(cd.getUnit());

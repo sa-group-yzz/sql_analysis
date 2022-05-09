@@ -3,9 +3,7 @@ package analysis.utils;
 import soot.Unit;
 import soot.Value;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CheckPointDetail {
     public static int CONSTANT_ANALYSIS = 0x1;
@@ -14,7 +12,7 @@ public class CheckPointDetail {
     public static int LIVENESS_ANALYSIS = 0x1000;
     public static int[] analyses = {CONSTANT_ANALYSIS, DEFINITION_ANALYSIS, EXPRESSION_ANALYSIS,LIVENESS_ANALYSIS };
 
-    private int analysisBit = 0;
+    protected int analysisBit = 0;
 
     public Unit getUnit() {
         return unit;
@@ -67,12 +65,36 @@ public class CheckPointDetail {
         return String.format("[%s]%s:%s,%d", id, unit, value, analysisBit);
     }
 
-    public void set2Map(Map<Integer, List<CheckPointDetail>> ret) {
+    public void set2Map(Map<Integer, Set<CheckPointDetail>> ret) {
         for(int a : analyses) {
             if(contains(a)) {
-                List<CheckPointDetail> cl = ret.computeIfAbsent(a, k -> new ArrayList<>());
+                Set<CheckPointDetail> cl = ret.computeIfAbsent(a, k -> new HashSet<>());
                 cl.add(this);
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == null) {
+            return false;
+        }
+        if(!(obj instanceof CheckPointDetail)) {
+            return false;
+        }
+        if(obj == this) {
+            return true;
+        }
+        CheckPointDetail o = (CheckPointDetail) obj;
+        return o.analysisBit == this.analysisBit &&
+                o.unit == this.unit &&
+                o.value == this.value &&
+                Objects.equals(o.id, this.id);
+    }
+
+    @Override
+    public int hashCode() {
+        String format = String.format("%d%s", this.analysisBit, this.id);
+        return Integer.parseInt(format);
     }
 }

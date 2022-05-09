@@ -18,7 +18,7 @@ import soot.toolkits.scalar.BackwardFlowAnalysis;
 import java.util.*;
 
 public class CheckPointAnalysis  {
-    public Map<Integer, List<CheckPointDetail>> ret = new HashMap<>();
+    public Map<Integer, Set<CheckPointDetail>> ret = new HashMap<>();
 
     public CheckPointAnalysis(DirectedGraph<Unit> graph) {
         Iterator<Unit> ui = graph.getTails().iterator();
