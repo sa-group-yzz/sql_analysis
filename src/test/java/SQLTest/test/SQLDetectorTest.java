@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 public class SQLDetectorTest extends BaseTest {
     @Test
-    public void test() {
+    public void testCase1() {
         SQLDetector detector = new SQLDetector();
         Set<Silica> relevantSilicas = detector.detect(new HashSet<>(Arrays.asList("SQLTest.testcase.Case1")));
         for (Silica silica : relevantSilicas) {
