@@ -18,7 +18,7 @@ public class Case9 {
         int a = 5;
         int b = args.length;
         int c=1, d=a+b;
-        if(rs.getInt(3) > 1000000) {
+        if(rs.getInt(2) > 1000000) {
             a = 1;
             c = a + b;
         } else {

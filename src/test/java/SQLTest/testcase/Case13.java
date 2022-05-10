@@ -10,12 +10,12 @@ public class Case13 {
         Connection con = Helper.createDB();
         Helper.initDB(con);
         Statement stm = con.createStatement();
-        ResultSet rs = stm.executeQuery("SELECT id,name,price, total from cars where price >=10 and total <= 100  limit 1");
+        ResultSet rs = stm.executeQuery("SELECT id,name,price,total from cars where price >=10 and total <= 100  limit 1");
         rs.next();
         int a;
         int b = args.length;
         CheckPoint.trigger(1, null, CheckPoint.LIVENESS_ANALYSIS);
-        if(rs.getInt(3) < 10 && rs.getInt(4) <= 100) {
+        if(rs.getInt(2) < 10 && rs.getInt(3) <= 100) {
             a = 1;
         } else {
             a = b + 1;
