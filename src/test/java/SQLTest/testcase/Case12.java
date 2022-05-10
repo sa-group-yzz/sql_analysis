@@ -1,7 +1,7 @@
 package SQLTest.testcase;
 
-import cases.utils.CheckPoint;
-import cases.utils.Helper;
+import SQLTest.testcase.utils.CheckPoint;
+import SQLTest.testcase.utils.Helper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
