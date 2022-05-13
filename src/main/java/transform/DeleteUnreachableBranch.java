@@ -23,7 +23,7 @@ public class DeleteUnreachableBranch {
 
     public Body delete() {
         DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
-
+        detectUnreachableBranch(body, cfg);
         return null;
     }
 

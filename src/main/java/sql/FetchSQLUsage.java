@@ -7,10 +7,7 @@ import top.viewv.abstraction.Silica;
 import top.viewv.abstraction.Use;
 import top.viewv.function.Analyzer;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class FetchSQLUsage {
     private Set<String> classfilter = new HashSet<>();
@@ -18,7 +15,7 @@ public class FetchSQLUsage {
 
     private Set<Silica> silicas;
 
-    private Set<String> querys = new HashSet<>();;
+    private Set<String> querys = new HashSet<>();
 
     private Set<TableStat.Condition> conditionSet = new HashSet<>();
 
@@ -29,8 +26,8 @@ public class FetchSQLUsage {
     private HashMap<Unit, Set<String>> unitColumnHashMap = new HashMap<>();
 
 
-    public FetchSQLUsage(List<String> className) {
-        classfilter.addAll(className);
+    public FetchSQLUsage(String className) {
+        classfilter.addAll(Collections.singletonList(className));
         silicas = detector.detect(classfilter);
         for (Silica silica : silicas) {
             Set<Use> uses = Analyzer.getUseSet(silica);
