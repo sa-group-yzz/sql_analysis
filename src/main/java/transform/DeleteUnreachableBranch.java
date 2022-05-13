@@ -47,7 +47,7 @@ public class DeleteUnreachableBranch {
 
         return null;
     }
-
+    // TODO change unreachable to reachable
     public Set<Unit> detectUnreachableBranch(Body methodBody, DirectedGraph<Unit> graph) {
         ConstantPropagation cp = new ConstantPropagation(graph);
         cp.doAnalysis();
@@ -119,14 +119,14 @@ public class DeleteUnreachableBranch {
         }
 
         for (Unit unit : graph) {
-            if (!reachableBranch.contains(unit)) {
+            if (!reachableBranch.contains(unit) && !unit.toString().contains("nop")) {
                 this.unreachableBranch.add(unit);
             }
         }
         return unreachableBranch;
     }
 
-    private void removeUnreachableBranch(DirectedGraph<Unit> cfg, File testFile) {
+    public Set<Unit> removeUnreachableBranch(DirectedGraph<Unit> cfg) {
         Set<Unit> visited = new HashSet<>();
         Unit head = cfg.getHeads().get(0);
         Queue<Unit> q = new LinkedList<>();
@@ -134,7 +134,7 @@ public class DeleteUnreachableBranch {
         visited.add(head);
         while (!q.isEmpty()) {
             Unit unit = q.poll();
-            System.out.println(unit + " -> " + cfg.getSuccsOf(unit));
+//            System.out.println(unit + " -> " + cfg.getSuccsOf(unit));
             for (Unit succUnit : cfg.getSuccsOf(unit)) {
                 if (!visited.contains(succUnit) && !unreachableBranch.contains(succUnit)) {
                     visited.add(succUnit);
@@ -144,6 +144,8 @@ public class DeleteUnreachableBranch {
         }
 
         visited.removeIf(unit -> unit.toString().contains("nop"));
+
+        return visited;
     }
 
     public FetchSQLUsage getSqlUsage() {

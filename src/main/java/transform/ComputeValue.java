@@ -9,6 +9,7 @@ import soot.jimple.*;
 import java.util.Map;
 
 public class ComputeValue {
+    // TODO check >= and soot class
     public static MyValue compute(Map<Local, MyValue> in, Value value) {
         if (value instanceof Local) {
             Local rightLocal = (Local) value;
