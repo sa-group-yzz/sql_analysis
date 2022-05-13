@@ -13,17 +13,16 @@ import java.util.*;
 
 public class DeleteUnreachableBranch {
     private FetchSQLUsage sqlUsage;
-    private Body body;
     private Set<Unit> unreachableBranch;
 
-    public DeleteUnreachableBranch(FetchSQLUsage sqlUsage, Body body) {
+    public DeleteUnreachableBranch(FetchSQLUsage sqlUsage) {
         this.sqlUsage = sqlUsage;
     }
 
 
     public Body delete() {
-        DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
-        detectUnreachableBranch(body, cfg);
+//        DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
+//        detectUnreachableBranch(body, cfg);
         return null;
     }
 

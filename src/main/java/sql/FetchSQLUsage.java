@@ -13,6 +13,8 @@ public class FetchSQLUsage {
     private Set<String> classfilter = new HashSet<>();
     private SQLDetector detector = new SQLDetector();
 
+    private String className;
+
     private Set<Silica> silicas;
 
     private Set<String> querys = new HashSet<>();
@@ -27,6 +29,7 @@ public class FetchSQLUsage {
 
 
     public FetchSQLUsage(String className) {
+        this.className = className;
         classfilter.addAll(Collections.singletonList(className));
         silicas = detector.detect(classfilter);
         for (Silica silica : silicas) {
@@ -73,4 +76,9 @@ public class FetchSQLUsage {
     public Set<String> getClassFilter() {
         return classfilter;
     }
+
+    public String getClassName() {
+        return className;
+    }
+
 }
