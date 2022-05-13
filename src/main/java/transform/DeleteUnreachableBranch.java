@@ -14,27 +14,51 @@ import java.util.*;
 public class DeleteUnreachableBranch {
     private FetchSQLUsage sqlUsage;
     private Set<Unit> unreachableBranch;
+    private Body body;
 
     public DeleteUnreachableBranch(FetchSQLUsage sqlUsage) {
         this.sqlUsage = sqlUsage;
+        this.unreachableBranch = new HashSet<>();
+    }
+
+    public DeleteUnreachableBranch() {
+        this.unreachableBranch = new HashSet<>();
     }
 
 
     public Body delete() {
-//        DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
-//        detectUnreachableBranch(body, cfg);
+        // get matched body
+        for (Map.Entry<Unit, Set<String>> entry : this.sqlUsage.getUnitColumnHashMap().entrySet()) {
+            for (SootMethod sootMethod : Scene.v().getSootClass(sqlUsage.getClassName()).getMethods()) {
+                if (sootMethod.isConcrete() && sootMethod.hasActiveBody()) {
+                    Body body = sootMethod.retrieveActiveBody();
+                    for (Unit unit : body.getUnits()) {
+                        if (entry.getKey().equals(unit)) {
+                            this.body = body;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        DirectedGraph<Unit> cfg = new BriefUnitGraph(this.body);
+        detectUnreachableBranch(body, cfg);
+
         return null;
     }
 
-    Set<Unit> detectUnreachableBranch(Body methodBody, DirectedGraph<Unit> graph) {
+    public Set<Unit> detectUnreachableBranch(Body methodBody, DirectedGraph<Unit> graph) {
         ConstantPropagation cp = new ConstantPropagation(graph);
         cp.doAnalysis();
+
         Set<Unit> reachableBranch = new HashSet<>();
         Unit head = graph.getHeads().get(0);
         Queue<Unit> q = new LinkedList<>();
         Set<Unit> visit = new HashSet<>();
         q.add(head);
         visit.add(head);
+
         while (!q.isEmpty()) {
             Unit unit = q.poll();
             if (unit instanceof IfStmt) {
@@ -95,8 +119,8 @@ public class DeleteUnreachableBranch {
         }
 
         for (Unit unit : graph) {
-            if (!reachableBranch.contains(unit) && !unit.toString().contains("nop")) {
-                unreachableBranch.add(unit);
+            if (!reachableBranch.contains(unit)) {
+                this.unreachableBranch.add(unit);
             }
         }
         return unreachableBranch;
@@ -120,5 +144,17 @@ public class DeleteUnreachableBranch {
         }
 
         visited.removeIf(unit -> unit.toString().contains("nop"));
+    }
+
+    public FetchSQLUsage getSqlUsage() {
+        return sqlUsage;
+    }
+
+    public void setSqlUsage(FetchSQLUsage sqlUsage) {
+        this.sqlUsage = sqlUsage;
+    }
+
+    public Set<Unit> getUnreachableBranch() {
+        return unreachableBranch;
     }
 }
