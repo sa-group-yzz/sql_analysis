@@ -1,6 +1,6 @@
 package SQLTest.testcase;
 
-public class TableSwitchBranchCase {
+public class TableSwitchCase {
     public int main() {
         int x = 3, y = 1;
         switch (x) {
