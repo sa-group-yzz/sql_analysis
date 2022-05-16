@@ -19,6 +19,7 @@ public class BaseTest {
         Options.v().set_keep_line_number(true);
         Options.v().set_keep_offset(true);
         Options.v().set_allow_phantom_refs(true);
+        Options.v().setPhaseOption("jb","use-original-names:true");
 
         Scene.v().loadNecessaryClasses();
     }

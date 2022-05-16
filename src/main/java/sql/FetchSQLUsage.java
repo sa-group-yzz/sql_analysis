@@ -54,12 +54,14 @@ public class FetchSQLUsage {
             for (Use use : uses) {
                 Unit unit = use.getCodepoint().getStatement();
                 Set<String> columns = use.getSelectedColumn();
-                HashMap<String, TableStat.Condition> columnConditionHashMap = new HashMap<>();
-                for (String column : columns) {
-                    TableStat.Condition condition = nameConditionHashMap.get(column);
-                    columnConditionHashMap.put(column,condition);
+                if (columns != null) {
+                    HashMap<String, TableStat.Condition> columnConditionHashMap = new HashMap<>();
+                    for (String column : columns) {
+                        TableStat.Condition condition = nameConditionHashMap.get(column);
+                        columnConditionHashMap.put(column,condition);
+                    }
+                    unitColumnHashMap.put(unit, columnConditionHashMap);
                 }
-                unitColumnHashMap.put(unit, columnConditionHashMap);
             }
         }
     }

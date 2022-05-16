@@ -4,6 +4,7 @@ import org.junit.Test;
 import soot.*;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.DirectedGraph;
+import sql.FetchSQLUsage;
 import transform.DeleteUnreachableBranch;
 
 import java.io.*;
@@ -12,7 +13,7 @@ import java.util.Set;
 public class DetectUnreachableBranchTest extends BaseTest {
     @Test
     public void testUnreachableIfBranch() {
-        SootClass sootClass = Scene.v().getSootClass("SQLTest.testcase.IfBranchCase");
+        SootClass sootClass = Scene.v().getSootClass("SQLTest.testcase.Case1");
         SootMethod mainMethod = null;
         for (SootMethod method : sootClass.getMethods()) {
             if (method.getName().contains("main")) {
@@ -28,9 +29,27 @@ public class DetectUnreachableBranchTest extends BaseTest {
         for (Unit unit : delete.detectUnreachableBranch(body, cfg)) {
             System.out.println(unit);
         }
+
         System.out.println("-----");
-        delete.removeUnreachableBranch(cfg);
         DetectUnreachableBranchTest.printSource(new File("src/test/java/SQLTest/testcase/IfBranchCase.java"), cfg, delete.removeUnreachableBranch(cfg));
+    }
+
+    @Test
+    public void testUnreachableIfBranchWithSQLUsage(){
+        FetchSQLUsage fetchSQLUsage = new FetchSQLUsage("SQLTest.testcase.Case1");
+        SootClass sootClass = Scene.v().getSootClass("SQLTest.testcase.Case1");
+        SootMethod mainMethod = null;
+        for (SootMethod method : sootClass.getMethods()) {
+            if (method.getName().contains("main")) {
+                mainMethod = method;
+            }
+        }
+
+        assert mainMethod != null;
+        Body body = mainMethod.retrieveActiveBody();
+        DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
+        DeleteUnreachableBranch delete = new DeleteUnreachableBranch(fetchSQLUsage);
+        delete.detectUnreachableBranchWithSQLUsage(body, cfg);
     }
 
     @Test

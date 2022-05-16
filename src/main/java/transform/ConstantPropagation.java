@@ -1,5 +1,6 @@
 package transform;
 
+import com.alibaba.druid.stat.TableStat;
 import soot.Local;
 import soot.Unit;
 import soot.jimple.AssignStmt;
@@ -10,6 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConstantPropagation extends ForwardFlowAnalysis<Unit, Map<Local, MyValue>> {
+    private HashMap<Unit, HashMap<String, TableStat.Condition>> unitConditions;
+
+    public ConstantPropagation(DirectedGraph<Unit> graph, HashMap<Unit, HashMap<String, TableStat.Condition>> unitConditions) {
+        super(graph);
+        this.unitConditions = unitConditions;
+    }
 
     public ConstantPropagation(DirectedGraph<Unit> graph) {
         super(graph);
@@ -21,9 +28,12 @@ public class ConstantPropagation extends ForwardFlowAnalysis<Unit, Map<Local, My
 
         if (unit instanceof AssignStmt) {
             AssignStmt stmt = (AssignStmt) unit;
-
             Local leftLocal = (Local) stmt.getLeftOp();
-            out.put(leftLocal, ComputeValue.compute(in, stmt.getRightOp()));
+            if (this.unitConditions != null && this.unitConditions.containsKey(unit)) {
+                out.put(leftLocal, ComputeValue.computeWithSQL(in, stmt.getRightOp(), unitConditions.get(unit)));
+            } else {
+                out.put(leftLocal, ComputeValue.compute(in, stmt.getRightOp()));
+            }
         }
     }
 
