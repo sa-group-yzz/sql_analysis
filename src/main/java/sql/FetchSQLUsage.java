@@ -25,7 +25,9 @@ public class FetchSQLUsage {
 
     private HashMap<Silica,Set<String>> silicaQueryHashMap = new HashMap<>();
 
-    private HashMap<Unit, Set<String>> unitColumnHashMap = new HashMap<>();
+    private HashMap<Unit, HashMap<String, TableStat.Condition>> unitColumnHashMap = new HashMap<>();
+
+    private HashMap<String, TableStat.Condition> nameConditionHashMap = new HashMap<>();
 
 
     public FetchSQLUsage(String className) {
@@ -42,18 +44,27 @@ public class FetchSQLUsage {
             for (String query : querys) {
                 SQLAnalysis sqlAnalysis = new SQLAnalysis(query);
                 List<TableStat.Condition> conditions = sqlAnalysis.getConditions();
+                for (TableStat.Condition condition : conditions) {
+                    String columName = condition.getColumn().getName();
+                    nameConditionHashMap.put(columName,condition);
+                }
                 this.conditionSet.addAll(conditions);
             }
 
             for (Use use : uses) {
                 Unit unit = use.getCodepoint().getStatement();
                 Set<String> columns = use.getSelectedColumn();
-                unitColumnHashMap.put(unit,columns);
+                HashMap<String, TableStat.Condition> columnConditionHashMap = new HashMap<>();
+                for (String column : columns) {
+                    TableStat.Condition condition = nameConditionHashMap.get(column);
+                    columnConditionHashMap.put(column,condition);
+                }
+                unitColumnHashMap.put(unit, columnConditionHashMap);
             }
         }
     }
 
-    public HashMap<Unit, Set<String>> getUnitColumnHashMap() {
+    public HashMap<Unit, HashMap<String, TableStat.Condition>> getUnitColumnHashMap() {
         return unitColumnHashMap;
     }
 
