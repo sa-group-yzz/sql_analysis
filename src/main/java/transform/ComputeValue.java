@@ -31,6 +31,15 @@ public class ComputeValue {
             BinopExpr binopExpr = (BinopExpr) value;
             MyValue op1Value = computeWithSQL(in, binopExpr.getOp1(), conditions);
             MyValue op2Value = computeWithSQL(in, binopExpr.getOp2(), conditions);
+            if (conditions != null && conditions.size() > 0) {
+                TableStat.Condition ifCondition = (TableStat.Condition) conditions.values().toArray()[0];
+                if (op1Value.getType() == MyValue.Type.VALUE && op2Value.getType() != MyValue.Type.VALUE) {
+                    op2Value = MyValue.makeRange((Integer) ifCondition.getValues().get(0), ifCondition.getOperator());
+                } else if (op2Value.getType() == MyValue.Type.VALUE && op1Value.getType() != MyValue.Type.VALUE) {
+                    op1Value = MyValue.makeRange((Integer) ifCondition.getValues().get(0), ifCondition.getOperator());
+                }
+            }
+
 
             if (op1Value.getType() == MyValue.Type.UNDEF && op2Value.getType() == MyValue.Type.UNDEF) {
                 return MyValue.getUNDEF();

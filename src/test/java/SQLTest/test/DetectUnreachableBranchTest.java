@@ -16,7 +16,7 @@ import java.util.Set;
 public class DetectUnreachableBranchTest extends BaseTest {
     @Test
     public void testUnreachableIfBranchWithSQLUsage() {
-        String className = "SQLTest.testcase.Case1";
+        String className = "SQLTest.testcase.Case11";
         FetchSQLUsage fetchSQLUsage = new FetchSQLUsage(className);
         SootClass sootClass = Scene.v().getSootClass(className);
         SootMethod mainMethod = null;
