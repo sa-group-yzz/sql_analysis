@@ -96,7 +96,7 @@
             <artifactId>SQLAnalysis</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${pom.basedir}/src/main/java/lib/SQLAnalysis-1.0-SNAPSHOT.jar</systemPath>
+            <systemPath>${pom.basedir}/src/main/java/lib/SQLAnalysis-1.1.jar</systemPath>
         </dependency>
 
     </dependencies>

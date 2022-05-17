@@ -4,8 +4,6 @@ import com.alibaba.druid.stat.TableStat;
 import org.junit.Test;
 import sql.FetchSQLUsage;
 
-import java.util.Collections;
-
 public class FetchSQLUsageTest extends BaseTest{
     @Test
     public void testFetchSQLUsage() {
