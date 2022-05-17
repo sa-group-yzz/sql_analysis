@@ -8,6 +8,7 @@ import soot.Value;
 import soot.jimple.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class ComputeValue {
     public static MyValue computeWithSQL(Map<Local, MyValue> in, Value value, Map<String, TableStat.Condition> conditions) {
@@ -31,6 +32,25 @@ public class ComputeValue {
             BinopExpr binopExpr = (BinopExpr) value;
             MyValue op1Value = computeWithSQL(in, binopExpr.getOp1(), conditions);
             MyValue op2Value = computeWithSQL(in, binopExpr.getOp2(), conditions);
+
+            if (conditions != null && conditions.size() > 0 && conditions.values().toArray()[0] != null) {
+                TableStat.Condition ifCondition = (TableStat.Condition) conditions.values().toArray()[0];
+
+                if (op1Value.getType() == MyValue.Type.VALUE && op2Value.getType() != MyValue.Type.VALUE) {
+                    if (Objects.equals(ifCondition.getOperator(), "=")) {
+                        op2Value = MyValue.makeConstant((Integer) ifCondition.getValues().get(0));
+                    } else {
+                        op2Value = MyValue.makeRange((Integer) ifCondition.getValues().get(0), ifCondition.getOperator());
+                    }
+                } else if (op2Value.getType() == MyValue.Type.VALUE && op1Value.getType() != MyValue.Type.VALUE) {
+                    if (Objects.equals(ifCondition.getOperator(), "=")) {
+                        op1Value = MyValue.makeConstant((Integer) ifCondition.getValues().get(0));
+                    } else {
+                        op1Value = MyValue.makeRange((Integer) ifCondition.getValues().get(0), ifCondition.getOperator());
+                    }
+                }
+            }
+
 
             if (op1Value.getType() == MyValue.Type.UNDEF && op2Value.getType() == MyValue.Type.UNDEF) {
                 return MyValue.getUNDEF();
