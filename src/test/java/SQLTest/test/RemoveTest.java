@@ -29,7 +29,7 @@ public class RemoveTest extends BaseTest {
             }
         }
 
-        String assertionPath = "/Users/zhouzhichao/sql_analysis_demo/assertions";
+        String assertionPath = "./assertions";
 
         assert mainMethod != null;
         Body body = mainMethod.retrieveActiveBody();
