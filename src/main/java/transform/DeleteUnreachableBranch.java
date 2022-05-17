@@ -39,7 +39,6 @@ public class DeleteUnreachableBranch {
         while (!q.isEmpty()) {
             Unit unit = q.poll();
             if (unit instanceof IfStmt) {
-                System.out.println(methodBody.getMethod().getDeclaringClass().getName());
                 IfStmt ifStmt = (IfStmt) unit;
                 Value conditionValue = ifStmt.getCondition();
                 Map<Local, MyValue> inMap = cp.getFlowBefore(unit);

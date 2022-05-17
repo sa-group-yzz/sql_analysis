@@ -4,7 +4,6 @@ import com.alibaba.druid.stat.TableStat;
 import soot.JastAddJ.GEExpr;
 import soot.JastAddJ.LEExpr;
 import soot.Local;
-import soot.Unit;
 import soot.Value;
 import soot.jimple.*;
 
@@ -75,13 +74,29 @@ public class ComputeValue {
     private static MyValue computeRangeValue(MyValue value1, MyValue value2, String op) {
         switch (op) {
             case ">":
-                return MyValue.makeConstant(value1.getMinValue() > value2.getMaxValue());
+                if (value1.getMinValue() > value2.getValue()) {
+                    return MyValue.makeConstant(1);
+                } else if (value1.getMaxValue() <= value2.getValue()) {
+                    return MyValue.makeConstant(0);
+                }
             case ">=":
-                return MyValue.makeConstant(value1.getMinValue() >= value2.getMaxValue());
+                if (value1.getMinValue() >= value2.getValue()) {
+                    return MyValue.makeConstant(1);
+                } else if (value1.getMaxValue() < value2.getValue()) {
+                    return MyValue.makeConstant(0);
+                }
             case "<":
-                return MyValue.makeConstant(value1.getMaxValue() < value2.getMinValue());
+                if (value1.getMaxValue() < value2.getValue()) {
+                    return MyValue.makeConstant(1);
+                } else if (value1.getMinValue() >= value2.getValue()) {
+                    return MyValue.makeConstant(0);
+                }
             case "<=":
-                return MyValue.makeConstant(value1.getMaxValue() <= value2.getMinValue());
+                if (value1.getMaxValue() <= value2.getValue()) {
+                    return MyValue.makeConstant(1);
+                } else if (value1.getMinValue() > value2.getValue()) {
+                    return MyValue.makeConstant(0);
+                }
         }
 
         return MyValue.getNAC();
