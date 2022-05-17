@@ -16,7 +16,7 @@ public class Case1 {
         conn = DriverManager.getConnection(DB_URL, USER, PASS);
         System.out.println("Creating statement...");
         stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery("select id,name,price from cars where price > 1000 limit 1");
+        ResultSet rs = stmt.executeQuery("select id,name,price from cars where price < 300 limit 1");
         int id = rs.getInt(0);
         String name = rs.getString(1);
         int price = rs.getInt(2);

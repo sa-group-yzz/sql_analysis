@@ -1,25 +1,25 @@
 package transform;
 
-import com.alibaba.druid.stat.TableStat;
 import soot.*;
-import soot.jimple.IfStmt;
-import soot.jimple.LookupSwitchStmt;
-import soot.jimple.TableSwitchStmt;
-import soot.toolkits.graph.BriefUnitGraph;
+import soot.jimple.*;
 import soot.toolkits.graph.DirectedGraph;
 import sql.FetchSQLUsage;
 
-import java.io.*;
 import java.util.*;
 
 public class DeleteUnreachableBranch {
     private FetchSQLUsage sqlUsage;
     private Set<Unit> unreachableBranch;
-    private Body body;
+    private String className;
+    private Map<Stmt, GotoStmt> stmtToReplacement;
+    private List<IfStmt> deadStmts;
 
-    public DeleteUnreachableBranch(FetchSQLUsage sqlUsage) {
+    public DeleteUnreachableBranch(FetchSQLUsage sqlUsage, String className) {
         this.sqlUsage = sqlUsage;
         this.unreachableBranch = new HashSet<>();
+        this.stmtToReplacement = new HashMap<>();
+        this.deadStmts = new ArrayList<>();
+        this.className = className;
     }
 
     public DeleteUnreachableBranch() {
@@ -27,31 +27,9 @@ public class DeleteUnreachableBranch {
     }
 
 
-    public Body delete() {
-        // get matched body
-        this.body = getMainBody();
-
-        DirectedGraph<Unit> cfg = new BriefUnitGraph(this.body);
-        detectUnreachableBranch(body, cfg);
-
-        return null;
-    }
-
-    public Body deleteWithSQLUsage() {
-        // get matched body
-        this.body = getMainBody();
-
-        DirectedGraph<Unit> cfg = new BriefUnitGraph(this.body);
-        detectUnreachableBranchWithSQLUsage(body, cfg);
-
-        return null;
-    }
-
-    public Set<Unit> detectUnreachableBranchWithSQLUsage(Body methodBody, DirectedGraph<Unit> graph) {
+    public void detectUnreachableBranchWithSQLUsage(Body methodBody, DirectedGraph<Unit> graph) {
         ConstantPropagation cp = new ConstantPropagation(graph, this.sqlUsage.getUnitColumnHashMap());
         cp.doAnalysis();
-
-        Set<Unit> reachableBranch = new HashSet<>();
         Unit head = graph.getHeads().get(0);
         Queue<Unit> q = new LinkedList<>();
         Set<Unit> visit = new HashSet<>();
@@ -61,7 +39,7 @@ public class DeleteUnreachableBranch {
         while (!q.isEmpty()) {
             Unit unit = q.poll();
             if (unit instanceof IfStmt) {
-                reachableBranch.add(unit);
+                System.out.println(methodBody.getMethod().getDeclaringClass().getName());
                 IfStmt ifStmt = (IfStmt) unit;
                 Value conditionValue = ifStmt.getCondition();
                 Map<Local, MyValue> inMap = cp.getFlowBefore(unit);
@@ -69,45 +47,13 @@ public class DeleteUnreachableBranch {
 
                 if (value.getType() != MyValue.Type.NAC && value.getType() != MyValue.Type.UNDEF) {
                     if (value.getValue() == 1) {
-                        unit = ifStmt.getTarget();
+                        this.stmtToReplacement.put(ifStmt, Jimple.v().newGotoStmt(ifStmt.getTargetBox()));
                     } else {
-                        unit = methodBody.getUnits().getSuccOf(ifStmt);
+                        this.deadStmts.add(ifStmt);
                     }
-                }
-            } else if (unit instanceof LookupSwitchStmt) {
-                reachableBranch.add(unit);
-                LookupSwitchStmt lookupSwitchStmt = (LookupSwitchStmt) unit;
-                Value keyValue = lookupSwitchStmt.getKey();
-                Map<Local, MyValue> inMap = cp.getFlowBefore(unit);
-                MyValue value = ComputeValue.compute(inMap, keyValue);
-                int index = -1;
-                for (int i = 0; i < lookupSwitchStmt.getLookupValues().size(); i++) {
-                    if (value.getValue() == lookupSwitchStmt.getLookupValues().get(i).value) {
-                        index = i;
-                        break;
-                    }
-                }
-
-                if (index != -1) {
-                    unit = lookupSwitchStmt.getTarget(index);
-                } else {
-                    unit = lookupSwitchStmt.getDefaultTarget();
-                }
-            } else if (unit instanceof TableSwitchStmt) {
-                reachableBranch.add(unit);
-                TableSwitchStmt tableSwitchStmt = (TableSwitchStmt) unit;
-                Value keyValue = tableSwitchStmt.getKey();
-                Map<Local, MyValue> inMap = cp.getFlowBefore(unit);
-                MyValue value = ComputeValue.compute(inMap, keyValue);
-
-                if (value.getValue() <= tableSwitchStmt.getHighIndex() && value.getValue() >= tableSwitchStmt.getLowIndex()) {
-                    unit = tableSwitchStmt.getTarget(value.getValue() - tableSwitchStmt.getLowIndex());
-                } else {
-                    unit = tableSwitchStmt.getDefaultTarget();
                 }
             }
 
-            reachableBranch.add(unit);
 
             for (Unit succUnit : graph.getSuccsOf(unit)) {
                 if (!visit.contains(succUnit)) {
@@ -116,8 +62,14 @@ public class DeleteUnreachableBranch {
                 }
             }
         }
+    }
 
-        return reachableBranch;
+    public Body deleteUnreachableBranch(String[] sootArgs) {
+        UnreachableBranchTransformer transformer = new UnreachableBranchTransformer(this.stmtToReplacement, this.deadStmts, this.className);
+        Transform transform = new Transform("jtp.analysis", transformer);
+        PackManager.v().getPack("jtp").add(transform);
+        soot.Main.main(sootArgs);
+        return transformer.getEliminatedBody();
     }
 
     public Set<Unit> detectUnreachableBranch(Body methodBody, DirectedGraph<Unit> graph) {
@@ -198,40 +150,6 @@ public class DeleteUnreachableBranch {
         return unreachableBranch;
     }
 
-    public Set<Unit> removeUnreachableBranch(DirectedGraph<Unit> cfg) {
-        Set<Unit> visited = new HashSet<>();
-        Unit head = cfg.getHeads().get(0);
-        Queue<Unit> q = new LinkedList<>();
-        q.add(head);
-        visited.add(head);
-        while (!q.isEmpty()) {
-            Unit unit = q.poll();
-            for (Unit succUnit : cfg.getSuccsOf(unit)) {
-                if (!visited.contains(succUnit) && !unreachableBranch.contains(succUnit)) {
-                    visited.add(succUnit);
-                    q.add(succUnit);
-                }
-            }
-        }
-
-        visited.removeIf(unit -> unit.toString().contains("nop"));
-
-        return visited;
-    }
-
-    private Body getMainBody() {
-        Body mainBody = null;
-        for (SootMethod sootMethod : Scene.v().getSootClass(sqlUsage.getClassName()).getMethods()) {
-            if (sootMethod.isConcrete() && sootMethod.hasActiveBody()) {
-                if (sootMethod.getName().equals("main")) {
-                    mainBody = sootMethod.retrieveActiveBody();
-                    break;
-                }
-            }
-        }
-
-        return mainBody;
-    }
 
     public FetchSQLUsage getSqlUsage() {
         return sqlUsage;
