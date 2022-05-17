@@ -27,7 +27,7 @@ public class DeleteUnreachableBranch {
     }
 
 
-    public void detectUnreachableBranchWithSQLUsage(DirectedGraph<Unit> graph) {
+    public void detectUnreachableBranchWithSQLUsage(Body body, DirectedGraph<Unit> graph) {
         ConstantPropagation cp = new ConstantPropagation(graph, this.sqlUsage.getUnitColumnHashMap());
         cp.doAnalysis();
         Unit head = graph.getHeads().get(0);
@@ -47,8 +47,10 @@ public class DeleteUnreachableBranch {
                 if (value.getType() != MyValue.Type.NAC && value.getType() != MyValue.Type.UNDEF) {
                     if (value.getValue() == 1) {
                         this.stmtToReplacement.put(ifStmt, Jimple.v().newGotoStmt(ifStmt.getTargetBox()));
+                        unit = ifStmt.getTarget();
                     } else {
                         this.deadStmts.add(ifStmt);
+                        unit = body.getUnits().getSuccOf(ifStmt);
                     }
                 }
             }

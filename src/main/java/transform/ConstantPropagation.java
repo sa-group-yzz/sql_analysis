@@ -28,11 +28,13 @@ public class ConstantPropagation extends ForwardFlowAnalysis<Unit, Map<Local, My
 
         if (unit instanceof AssignStmt) {
             AssignStmt stmt = (AssignStmt) unit;
-            Local leftLocal = (Local) stmt.getLeftOp();
-            if (this.unitConditions != null && this.unitConditions.containsKey(unit)) {
-                out.put(leftLocal, ComputeValue.computeWithSQL(in, stmt.getRightOp(), unitConditions.get(unit)));
-            } else {
-                out.put(leftLocal, ComputeValue.compute(in, stmt.getRightOp()));
+            if(stmt.getLeftOp() instanceof Local) {
+                Local leftLocal = (Local) stmt.getLeftOp();
+                if (this.unitConditions != null && this.unitConditions.containsKey(unit)) {
+                    out.put(leftLocal, ComputeValue.computeWithSQL(in, stmt.getRightOp(), unitConditions.get(unit)));
+                } else {
+                    out.put(leftLocal, ComputeValue.compute(in, stmt.getRightOp()));
+                }
             }
         }
     }

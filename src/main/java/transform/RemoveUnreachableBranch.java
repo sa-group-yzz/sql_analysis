@@ -20,7 +20,7 @@ public class RemoveUnreachableBranch {
         Body body = mainMethod.retrieveActiveBody();
         DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
         DeleteUnreachableBranch deleteUnreachableBranch = new DeleteUnreachableBranch(fetchSQLUsage, className);
-        deleteUnreachableBranch.detectUnreachableBranchWithSQLUsage(cfg);
+        deleteUnreachableBranch.detectUnreachableBranchWithSQLUsage(body, cfg);
 
         return deleteUnreachableBranch.delete(getSootArgs());
     }
