@@ -19,10 +19,10 @@ public class RemoveUnreachableBranch {
         assert mainMethod != null;
         Body body = mainMethod.retrieveActiveBody();
         DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
-        DeleteUnreachableBranch delete = new DeleteUnreachableBranch(fetchSQLUsage, className);
-        delete.detectUnreachableBranchWithSQLUsage(body, cfg);
+        DeleteUnreachableBranch deleteUnreachableBranch = new DeleteUnreachableBranch(fetchSQLUsage, className);
+        deleteUnreachableBranch.detectUnreachableBranchWithSQLUsage(cfg);
 
-        return delete.deleteUnreachableBranch(getSootArgs());
+        return deleteUnreachableBranch.delete(getSootArgs());
     }
 
 

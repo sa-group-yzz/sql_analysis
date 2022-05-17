@@ -16,7 +16,7 @@ import java.util.Set;
 public class DetectUnreachableBranchTest extends BaseTest {
     @Test
     public void testUnreachableIfBranchWithSQLUsage() {
-        String className = "SQLTest.testcase.Case2";
+        String className = "SQLTest.testcase.Case1";
         FetchSQLUsage fetchSQLUsage = new FetchSQLUsage(className);
         SootClass sootClass = Scene.v().getSootClass(className);
         SootMethod mainMethod = null;
@@ -30,9 +30,9 @@ public class DetectUnreachableBranchTest extends BaseTest {
         Body body = mainMethod.retrieveActiveBody();
         DirectedGraph<Unit> cfg = new BriefUnitGraph(body);
         DeleteUnreachableBranch delete = new DeleteUnreachableBranch(fetchSQLUsage, className);
-        delete.detectUnreachableBranchWithSQLUsage(body, cfg);
+        delete.detectUnreachableBranchWithSQLUsage(cfg);
 
-        Body result = delete.deleteUnreachableBranch(getSootArgs());
+        Body result = delete.delete(getSootArgs());
 
         DirectedGraph<Unit> graph = new BriefUnitGraph(result);
         Unit head = graph.getHeads().get(0);
