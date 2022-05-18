@@ -12,6 +12,9 @@ import java.util.Objects;
 
 public class ComputeValue {
     public static MyValue computeWithSQL(Map<Local, MyValue> in, Value value, Map<String, TableStat.Condition> conditions) {
+        if(conditions == null) {
+            return MyValue.getNAC();
+        }
         if (value instanceof Local) {
             Local rightLocal = (Local) value;
             if (conditions.containsKey(rightLocal.getName())) {

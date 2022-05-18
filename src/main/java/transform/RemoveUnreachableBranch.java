@@ -25,10 +25,11 @@ public class RemoveUnreachableBranch {
         return deleteUnreachableBranch.delete(getSootArgs());
     }
 
+    public static String testPath =  "target/test-classes";
 
     private static String[] getSootArgs() {
         return new String[]{
-                "-process-dir", "target/test-classes",
+                "-process-dir", testPath,
                 "-w",
                 "-v",
                 "-keep-line-number",

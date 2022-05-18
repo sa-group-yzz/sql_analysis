@@ -71,7 +71,7 @@ public class AnalysisTester {
                 printErrorMsg(runType);
                 System.exit(1);
             }
-
+            RemoveUnreachableBranch.testPath = targetPath;
             b = RemoveUnreachableBranch.remove(Helper.getClassName(classPrefix, caseName));
             ExceptionalUnitGraph graph1 = new ExceptionalUnitGraph(b);
             runType = "sql";

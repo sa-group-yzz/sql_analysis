@@ -15,11 +15,10 @@ public class Case20 {
         Statement stm = con.createStatement();
         ResultSet rs = stm.executeQuery("SELECT id,name,price,total from cars where price >=10 and total <= 100 limit 1");
         rs.next();
-        int a = 5;
+        int a = args[0].length();
         int b = args.length;
         int c=1, d=a+b;
         if(b > 2) {
-            a = 1;
             c = a + b;
         } else {
             a = 10;
