@@ -3,10 +3,7 @@ package cases;
 import cases.utils.CheckPoint;
 import cases.utils.Helper;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class Case4 {
     public static void main(String[] args) throws SQLException {

@@ -11,6 +11,7 @@ import soot.jimple.BinopExpr;
 import soot.jimple.toolkits.typing.fast.QueuedSet;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.toolkits.scalar.ArraySparseSet;
+import transform.RemoveUnreachableBranch;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -20,7 +21,7 @@ import java.util.*;
 public class AnalysisTester {
     public static void main(String[] args) throws IOException, CsvValidationException {
         Options options = new Options();
-        Option jar = new Option("j", "jar", true, "jar path");
+        Option jar = new Option("t", "target", true, "target class path");
         jar.setRequired(true);
         options.addOption(jar);
         Option prefix = new Option("p", "prefix", true, "class prefix");
@@ -45,7 +46,7 @@ public class AnalysisTester {
             System.exit(1);
         }
 
-        String jarPath = cmd.getOptionValue("jar");
+        String targetPath = cmd.getOptionValue("target");
         String assertionPath = cmd.getOptionValue("assertion");
         String classPrefix = cmd.getOptionValue("prefix");
         String specificCase = cmd.getOptionValue("case");
@@ -53,19 +54,29 @@ public class AnalysisTester {
             classPrefix = "cases";
         }
 
-        List<String> testCases = Helper.getTestCases(jarPath);
+        List<String> testCases = Helper.getTestCases(classPrefix, targetPath);
         for (String caseName : testCases) {
             if(specificCase != null && !Objects.equals(specificCase, "") && !specificCase.equals(caseName)) {
                 continue;
             }
             System.out.printf("handling %s ...\n", caseName);
-            SootMethod method = Helper.getTestCaseSootMethod(jarPath, classPrefix, caseName);
+            SootMethod method = Helper.getTestCaseSootMethod(targetPath, classPrefix, caseName);
             Body b = method.retrieveActiveBody();
             ExceptionalUnitGraph graph = new ExceptionalUnitGraph(b);
 
             String runType = "normal";
             classCaseNumber = 0;
+            Helper.initEnv(targetPath);
             if(!runAnalysis(assertionPath, caseName, graph, runType)) {
+                printErrorMsg(runType);
+                System.exit(1);
+            }
+
+            b = RemoveUnreachableBranch.remove(Helper.getClassName(classPrefix, caseName));
+            ExceptionalUnitGraph graph1 = new ExceptionalUnitGraph(b);
+            runType = "sql";
+            classCaseNumber = 0;
+            if(!runAnalysis(assertionPath, caseName, graph1, runType)) {
                 printErrorMsg(runType);
                 System.exit(1);
             }
@@ -89,7 +100,7 @@ public class AnalysisTester {
 
     private static boolean runAnalysis(String assertionPath, String caseName, ExceptionalUnitGraph graph, String runType) throws IOException, CsvValidationException {
         Map<Integer, Set<CheckPointDetail>> checkPointDetailMap = (new CheckPointAnalysis(graph)).ret;
-
+        System.out.printf("run mode: %s\n", runType);
         currentCase = caseName;
         if(checkPointDetailMap.get(CheckPointDetail.LIVENESS_ANALYSIS) != null) {
             System.out.println("run liveness analysis");

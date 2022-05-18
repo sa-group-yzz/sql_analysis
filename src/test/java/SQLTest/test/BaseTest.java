@@ -1,6 +1,7 @@
 package SQLTest.test;
 
 import org.junit.BeforeClass;
+import soot.G;
 import soot.Scene;
 import soot.options.Options;
 
@@ -10,7 +11,7 @@ import java.util.List;
 public class BaseTest {
     @BeforeClass
     public static void setUpBeforeClass() {
-
+        G.reset();
         List<String> dir = new ArrayList<>();
         dir.add("target/test-classes");
         Options.v().set_process_dir(dir);
