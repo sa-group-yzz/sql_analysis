@@ -31,7 +31,7 @@ public class AnalysisTester {
         assertion.setRequired(true);
         options.addOption(assertion);
         Option caseSpecific = new Option("c", "case", true, "specific case");
-        caseSpecific.setRequired(false);
+        caseSpecific.setRequired(true);
         options.addOption(caseSpecific);
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();

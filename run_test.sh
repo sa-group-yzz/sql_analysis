@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -e
 mvn clean
-echo "compile test cases..."
-mvn test-compile
 echo "build binary..."
 mvn package -DskipTests=true
+echo "compile test cases..."
+mvn test-compile
 END=24
 echo "run tests..."
 for ((i=1;i<=END;i++)); do
