@@ -49,8 +49,19 @@ public class DeleteUnreachableBranch {
                         this.stmtToReplacement.put(ifStmt, Jimple.v().newGotoStmt(ifStmt.getTargetBox()));
                         unit = ifStmt.getTarget();
                     } else {
-                        this.deadStmts.add(ifStmt);
-                        unit = body.getUnits().getSuccOf(ifStmt);
+                        Unit targetUnit = null;
+                        for(Unit isu : graph.getSuccsOf(ifStmt)) {
+                            if(ifStmt.getTargetBox().getUnit() == isu) {
+                                continue;
+                            }
+                            targetUnit = isu;
+                        }
+                        if(targetUnit != null) {
+                            this.stmtToReplacement.put(ifStmt, Jimple.v().newGotoStmt(targetUnit));
+                        } else {
+                            this.deadStmts.add(ifStmt);
+                            unit = body.getUnits().getSuccOf(ifStmt);
+                        }
                     }
                 }
             }

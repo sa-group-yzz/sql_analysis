@@ -6,6 +6,6 @@ import transform.RemoveUnreachableBranch;
 public class RemoveTest extends BaseTest {
     @Test
     public void testRemove() {
-        System.out.println(RemoveUnreachableBranch.remove("SQLTest.testcase.Case1"));
+        System.out.println(RemoveUnreachableBranch.remove("cases.Case17"));
     }
 }
