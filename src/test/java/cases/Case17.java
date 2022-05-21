@@ -15,7 +15,7 @@ public class Case17 {
         int a;
         int b = args.length;
         CheckPoint.trigger(1, null, CheckPoint.LIVENESS_ANALYSIS);
-        if(rs.getInt(2) < 10 || rs.getInt(3) > 100) {
+        if(rs.getInt(2) < 10 && rs.getInt(3) > 100) {
             a = 1;
         } else {
             a = b + 1;
