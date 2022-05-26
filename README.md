@@ -16,7 +16,7 @@ docker run -it --rm zzctmac/sql_analysis:v1 /bin/bash
 
 
 ## Run
-
+在命令行进入当前项目目录
 ### First step: Compile
 ```shell
 ./compile.sh
