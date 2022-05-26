@@ -22,15 +22,14 @@ docker run -it --rm zzctmac/sql_analysis:v1 /bin/bash
 ./compile.sh
 ```
 
-### Run one case
+### Run one test Java file
 ```shell
 java -jar ./target/analysis-1.0-SNAPSHOT-jar-with-dependencies.jar -a ./assertions -t ./target/test-classes -c Case1
 ```
+(时间：40s左右)
 
-#### case folder
-**./src/test/java/cases**
-
-### Run all cases
+### Run all test Java files
 ```shell
 ./run_test.sh
 ```
+(时间：10min左右)
