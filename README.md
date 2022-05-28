@@ -1,35 +1,77 @@
-# sql_analysis
-
-SQL analysis tool.
-
+# README
 
 ## Environment
-1. Java 1.8
-2. OS: Linux-Like systems such as Ubuntu and MacOS
 
-## Docker image
-以防万一无法提供环境或者在运行阶段出现任何无法正常运行的问题 ,我们提供了docker image，通过运行以下命令:
-```bash
+To build and run this project correctly, you need a Java 8 environment, and we use Maven as the build system.
+
+1. Java 8
+2. OS: We build and test our program on Linux systems such as Ubuntu and macOS. The program should work fine on Windows, but we didn't test it.
+
+⚠️ Our programs can only be built and run on Java 8, we do not guarantee that any other Java version will work properly.
+
+## Get the project
+
+You can clone our project from Github:
+
+```shell
+git clone https://github.com/sa-group-yzz/sql_analysis.git
+```
+
+## Run and test
+
+We offer a variety of ways to run our programs.
+
+### Docker
+
+You can use Docker to run our program, the advantage of using docker is that you do not need to configure the running environment. You need to install Docker, you can build the docker image by using the following command:
+
+```shell
 docker run -it --rm zzctmac/sql_analysis:v1 /bin/bash
 ```
-即可获得我们配置好的环境 (当前前提是系统安装好docker)
 
+### Build from source code
 
-## Run
-在命令行进入当前项目目录
-### First step: Compile
+#### 0: Optional Build the SQLAnalysis
+
+> ⚠️ You can skip this step, we have provided a pre-compiled jar package in sql_analysis.
+
+The SQLAnalysis is the SAND-NG module in our project, we already provide you a pre-compiled jar package in the sql_analysis git repository, but also if you want to build from the basement, you can build the SQLAnalysis.
+
+First, you need to clone the SQLAnalysis project from Github:
+
+```shell
+git clone https://github.com/sa-group-yzz/SQLAnalysis.git
+```
+
+After that you can use Maven to build the SQLAnalysis package:
+
+```shell
+mvn -B package --file pom.xml
+```
+
+You can get the jar package in the target folder, the name of the jar package for the current edition SQLAnalysis is `SQLAnalysis-1.1.jar`. Then you can copy this package into the sa-group-yzz project. The path is `src/main/java/lib`.
+
+### 1: Build the sql_analysis
+
+#### First step: Compile
+
 ```shell
 ./compile.sh
 ```
 
-### Run one test Java file
+#### Run one test Java file
+
 ```shell
 java -jar ./target/analysis-1.0-SNAPSHOT-jar-with-dependencies.jar -a ./assertions -t ./target/test-classes -c Case1
 ```
-(时间：40s左右)
 
-### Run all test Java files
+(Time: about 40s)
+
+#### Run all test Java files
+
 ```shell
 ./run_test.sh
 ```
-(时间：10min左右)
+
+(Time: about 10min)
+
