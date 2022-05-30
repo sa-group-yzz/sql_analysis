@@ -23,11 +23,12 @@ We offer a variety of ways to run our programs.
 
 ### Docker
 
-You can use Docker to run our program, the advantage of using docker is that you do not need to configure the running environment. You need to install Docker, you can build the docker image by using the following command:
+You can use Docker image to run our program, the advantage of using docker is that you do not need to configure the running environment. You need to install Docker, you can run the docker image by using the following command:
 
 ```shell
 docker run -it --rm zzctmac/sql_analysis:v1 /bin/bash
 ```
+Note that the first time you run the above command, docker needs to download this image since this image does not exist on your local computer. The time cost will be 1 to 10 minutes (depending on your Internet speed).
 
 ### Build from source code
 
