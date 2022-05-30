@@ -12,11 +12,12 @@ SQL analysis tool.
 ```bash
 docker run -it --rm zzctmac/sql_analysis:v1 /bin/bash
 ```
-即可获得我们配置好的环境 (当前前提是系统安装好docker)
+即可获得我们配置好的环境 (当前前提是系统安装好docker)。
+值得注意的是，第一次执行该命令时，由于本地没有该docker image，所以需要下载，大概需要3-10分钟不等，取决于本地网络。
 
 
 ## Run
-在命令行进入当前项目目录
+在命令行进入当前项目目录 (如果是通过 docker run则不需要，进入后已经在项目目录了)
 ### First step: Compile
 ```shell
 ./compile.sh
