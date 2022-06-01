@@ -17,9 +17,11 @@ You can clone our project from Github:
 git clone https://github.com/sa-group-yzz/sql_analysis.git
 ```
 
-## Run and test
 
-We offer a variety of ways to run our programs.
+
+## Build
+
+We offer a variety of ways to build the application.
 
 ### Docker
 
@@ -52,15 +54,15 @@ mvn -B package --file pom.xml
 
 You can get the jar package in the target folder, the name of the jar package for the current edition SQLAnalysis is `SQLAnalysis-1.1.jar`. Then you can copy this package into the sa-group-yzz project. The path is `src/main/java/lib`.
 
-### 1: Build the sql_analysis
-
-#### First step: Compile
+#### 1: Build the sql_analysis
 
 ```shell
 ./compile.sh
 ```
 
-#### Run one test Java file
+## Run and test
+
+### Run one test Java file
 
 ```shell
 java -jar ./target/analysis-1.0-SNAPSHOT-jar-with-dependencies.jar -a ./assertions -t ./target/test-classes -c Case1
@@ -68,7 +70,7 @@ java -jar ./target/analysis-1.0-SNAPSHOT-jar-with-dependencies.jar -a ./assertio
 
 (Time: about 40s)
 
-#### Run all test Java files
+### Run all test Java files
 
 ```shell
 ./run_test.sh
